@@ -90,8 +90,4 @@ License
 
 This project is provided as-is for learning and demonstration. Add a license file if you plan to share or distribute it commercially.
 
-Questions or next steps
-
-If you'd like, I can add example presets to the Run page, improve the chart visuals, or add unit tests for the algorithms.
-
 
