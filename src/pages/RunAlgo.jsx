@@ -32,8 +32,8 @@ export default function RunAlgo(){
       let pid = parts[0]
       let arrival = Number(parts[1])
       let burst = Number(parts[2] ?? parts[1])
-      // allow formats: pid,arrival,burst[,period][,deadline]
-      if(parts.length === 2){ // if only two numbers given assume pid omitted
+      
+      if(parts.length === 2){ 
         pid = `P${autoId++}`
         arrival = Number(parts[0])
         burst = Number(parts[1])

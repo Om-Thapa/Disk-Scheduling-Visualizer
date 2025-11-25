@@ -4,9 +4,15 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import RunAlgo from './pages/RunAlgo'
 import About from './pages/About'
+import { Helmet } from 'react-helmet'
 
 export default function App(){
+  
   return (
+    <>
+    <Helmet>
+    <title>DiskSchedulingAlgo</title>
+    </Helmet>
     <Router>
       <Layout>
         <Routes>
@@ -16,6 +22,7 @@ export default function App(){
         </Routes>
       </Layout>
     </Router>
+    </>
   )
 }
 
