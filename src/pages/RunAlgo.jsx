@@ -14,8 +14,9 @@ const ALGORITHMS = [
 
 export default function RunAlgo(){
   const [algorithm, setAlgorithm] = useState('FCFS')
-  const [procText, setProcText] = useState('P1,0,5\nP2,2,3\nP3,4,1')
+  const [procText, setProcText] = useState('P1,0,8\nP2,1,4\nP3,2,9\nP4,3,9')
   const [quantum, setQuantum] = useState(2)
+  const [horizon, setHorizon] = useState(50)
   const [result, setResult] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
@@ -47,7 +48,7 @@ export default function RunAlgo(){
   function run(){
     const procs = parseProcesses(procText)
     if(procs.length === 0) return setResult({ error: 'No processes defined' })
-    const res = computeSchedule(algorithm, procs, { quantum: Number(quantum), horizon: 200 })
+    const res = computeSchedule(algorithm, procs, { quantum: Number(quantum), horizon: Number(horizon) })
     setResult(res)
     setIsPlaying(false)
     setCurrentStep(0)
@@ -97,6 +98,12 @@ export default function RunAlgo(){
             </div>
           )}
 
+          <div className="mt-4">
+            <label className="block text-sm text-gray-300">Horizon (simulation time limit)</label>
+            <input type="number" value={horizon} onChange={e=>setHorizon(e.target.value)} min="1" className="mt-2 w-full bg-transparent p-3 rounded-md border border-white/10" />
+            <p className="text-xs text-gray-400 mt-1">Maximum time units to simulate. Increase for long-running tasks.(Recommended : 30</p>
+          </div>
+
           <div className="mt-6 flex gap-3">
             <button onClick={run} className="px-5 py-3 rounded-md bg-amber-600">Run Algorithm</button>
             <button onClick={()=>{ setProcText(''); setResult(null); setIsPlaying(false); setCurrentStep(0) }} className="px-5 py-3 rounded-md bg-white/5">Clear</button>
@@ -106,7 +113,7 @@ export default function RunAlgo(){
 
           {result && !result.error && (
             <div className="mt-4 text-sm text-gray-300">
-              <p><strong>Order:</strong> {result.order ? result.order.join(' → ') : '—'}</p>
+              <p><strong>Order:</strong> {result.timeline ? result.timeline.map((p) => p.pid).join(' → ') : '—'}</p>
               <p><strong>Total time:</strong> {result.totalTime}</p>
             </div>
           )}

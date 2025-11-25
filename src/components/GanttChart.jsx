@@ -4,7 +4,7 @@ export default function GanttChart({ timeline = [], currentStep = 0 }){
   if(!timeline || timeline.length === 0) return <div className="text-gray-400">No timeline to render.</div>
 
   const width = 900
-  const height = 140
+  const height = 180
   const padding = 40
 
   const totalEnd = Math.max(...timeline.map(t => t.end), 0)
@@ -12,8 +12,8 @@ export default function GanttChart({ timeline = [], currentStep = 0 }){
   const scale = (t) => padding + (t / Math.max(1, totalEnd)) * usable
 
   return (
-    <div className="overflow-auto">
-      <svg width={Math.min(1000, width)} height={height} className="bg-black/20 rounded-md p-2">
+    <div className="overflow-auto thin-scrollbar">
+      <svg width={Math.min(1000, width)} height={height} className="bg-black/20 rounded-md p-2 my-2">
         <text x={12} y={18} fontSize={12} fill="#fff">Gantt Chart (time left → right)</text>
 
         {timeline.map((seg, i)=>{
