@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import computeSchedule from '../algorithms'
 import GanttChart from '../components/GanttChart'
 import DiskCylinder from '../components/DiskCylinder'
@@ -14,7 +14,7 @@ export default function RunAlgo(){
   const [result, setResult] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
-  const intervalRef = useRef(null)
+  const [timerId, setTimerId] = useState(null)
 
   function parseRequests(text){
     return text.split(',').map(s=>s.trim()).filter(s=>s!=='').map(Number).filter(n=>!Number.isNaN(n))
@@ -27,29 +27,39 @@ export default function RunAlgo(){
     setResult(res)
     setIsPlaying(false)
     setCurrentStep(0)
+    if(timerId){ clearTimeout(timerId); setTimerId(null) }
   }
 
   useEffect(()=>{
+
+    return () => { if(timerId){ clearTimeout(timerId) } }
+  }, [timerId])
+
+  function togglePlay(){
     if(!result || result.error) return
-    if(isPlaying){
-      if(intervalRef.current) clearInterval(intervalRef.current)
-      intervalRef.current = setInterval(()=>{
-        setCurrentStep(s => {
-          const last = Math.max(0, (result.fullPath||[]).length - 1)
-          if(s >= last){
-            clearInterval(intervalRef.current)
-            intervalRef.current = null
-            setIsPlaying(false)
-            return last
-          }
-          return s+1
-        })
-      }, 600)
-    } else {
-      if(intervalRef.current){ clearInterval(intervalRef.current); intervalRef.current = null }
+
+    if(timerId){ clearTimeout(timerId); setTimerId(null); setIsPlaying(false); return }
+
+    setIsPlaying(true)
+
+    const step = () => {
+      setCurrentStep(s => {
+        const last = Math.max(0, (result.fullPath||[]).length - 1)
+        if(s >= last){
+          setIsPlaying(false)
+          setTimerId(null)
+          return last
+        }
+        const next = s + 1
+        const id = setTimeout(step, 600)
+        setTimerId(id)
+        return next
+      })
     }
-    return ()=>{ if(intervalRef.current){ clearInterval(intervalRef.current); intervalRef.current=null } }
-  },[isPlaying, result])
+
+    const id = setTimeout(step, 600)
+    setTimerId(id)
+  }
 
   return (
     <main className="max-w-6xl mx-auto p-10 rounded-xl bg-amber-50/5 mt-22 mb-8">
@@ -142,7 +152,7 @@ export default function RunAlgo(){
             <h3 className="font-semibold text-lg mb-3">Visualization</h3>
             <div className="flex items-center gap-2">
               <button onClick={() => { if(result && !result.error) setCurrentStep(s=> Math.max(0, s-1)) }} className="px-3 py-1 rounded-md bg-white/5">Prev</button>
-              <button onClick={() => { if(result && !result.error) setIsPlaying(p=>!p) }} className="px-3 py-1 rounded-md bg-amber-600">{isPlaying? 'Pause':'Play'}</button>
+              <button onClick={() => { togglePlay() }} className="px-3 py-1 rounded-md bg-amber-600">{isPlaying? 'Pause':'Play'}</button>
               <button onClick={() => { if(result && !result.error) setCurrentStep(s=> Math.min((result.fullPath||[]).length-1, s+1)) }} className="px-3 py-1 rounded-md bg-white/5">Next</button>
             </div>
           </div>
