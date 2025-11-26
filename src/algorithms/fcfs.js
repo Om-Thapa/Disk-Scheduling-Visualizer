@@ -1,14 +1,20 @@
-export default function fcfs(processes = [], opts = {}){
-  const procCopy = processes.map(p=> ({ ...p }))
-  procCopy.sort((a,b)=> (a.arrival||0) - (b.arrival||0))
-  const timeline = []
-  let time = 0
-  for(const p of procCopy){
-    const start = Math.max(time, p.arrival || 0)
-    const end = start + (p.burst || 0)
-    timeline.push({ pid: p.pid, start, end })
-    time = end
+// FCFS for disk scheduling (First-Come First-Serve)
+// Input: requests = array of track numbers, head = starting track
+// Output: { sequence, totalSeek, fullPath }
+export default function fcfs(requests = [], head = 0){
+  // make a clean array of numbers
+  const reqs = []
+  for(let i=0;i<(requests||[]).length;i++){
+    const n = Number(requests[i])
+    if(!Number.isNaN(n)) reqs.push(n)
   }
-  const order = timeline.map(t=>t.pid)
-  return { processes: procCopy, timeline, order, totalTime: time }
+
+  const path = [Number(head)]
+  for(let i=0;i<reqs.length;i++) path.push(reqs[i])
+
+  // compute total seek distance (time)
+  let total = 0
+  for(let i=1;i<path.length;i++) total += Math.abs(path[i] - path[i-1])
+
+  return { sequence: reqs, totalSeek: total, fullPath: path }
 }

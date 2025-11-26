@@ -1,49 +1,100 @@
 import React from 'react'
 
-export default function GanttChart({ timeline = [], currentStep = 0 }){
-  if(!timeline || timeline.length === 0) return <div className="text-gray-400">No timeline to render.</div>
+// For disk scheduling we render positions along the track axis and show movement segments
+// Simple Gantt-style view for disk head movement.
+// sequence: array of track numbers including initial head at index 0.
+export default function GanttChart({ sequence = [], headStart = 0, maxTrack = 199, currentStep = 0 }){
+  if(!sequence || sequence.length < 2) return <div className="text-gray-400">Not enough points to render.</div>
 
-  const width = 900
-  const height = 180
   const padding = 40
+  const width = 900
+  const height = 160
+  const usable = width - padding*2
+  const maxT = Number(maxTrack)
 
-  const totalEnd = Math.max(...timeline.map(t => t.end), 0)
-  const usable = width - padding * 2
-  const scale = (t) => padding + (t / Math.max(1, totalEnd)) * usable
+  // helper: map a track number to an x position
+  function scale(v){
+    const t = Number(v)
+    const frac = (t - 0) / Math.max(1, maxT - 0)
+    return padding + frac * usable
+  }
+
+  // build segments between consecutive points
+  const segments = []
+  for(let i=0;i<sequence.length-1;i++){
+    segments.push({ from: Number(sequence[i]), to: Number(sequence[i+1]), idx: i })
+  }
+
+  // compute cumulative distances (time)
+  const times = [0]
+  for(let i=1;i<sequence.length;i++) times.push(times[i-1] + Math.abs(Number(sequence[i]) - Number(sequence[i-1])))
+  const total = times[times.length-1]
+
+  const activeSegment = Math.max(0, currentStep - 1)
 
   return (
-    <div className="overflow-auto thin-scrollbar">
-      <svg width={Math.min(1000, width)} height={height} className="bg-black/20 rounded-md p-2 my-2">
-        <text x={12} y={18} fontSize={12} fill="#fff">Gantt Chart (time left → right)</text>
+    <div className="overflow-auto">
+      <svg width={Math.min(1000, width)} height={height} className="bg-black/20 rounded-md p-2">
+        {/* axis */}
+        <line x1={padding} x2={width-padding} y1={height-40} y2={height-40} stroke="#ccc" strokeWidth={1} />
 
-        {timeline.map((seg, i)=>{
-          const x = scale(seg.start)
-          const x2 = scale(seg.end)
-          const y = 40 + (i % 6) * 18
-          const isActive = i === currentStep
+        {/* ticks */}
+        {[0, Math.floor(maxT/4), Math.floor(maxT/2), Math.floor(3*maxT/4), maxT].forEach(()=>{})}
+        {[0, Math.floor(maxT/4), Math.floor(maxT/2), Math.floor(3*maxT/4), maxT].map((t,i)=> (
+          <g key={i}>
+            <line x1={scale(t)} x2={scale(t)} y1={height-44} y2={height-36} stroke="#aaa" />
+            <text x={scale(t)} y={height-18} fontSize={10} fill="#ddd" textAnchor="middle">{t}</text>
+          </g>
+        ))}
+
+        {/* segments */}
+        {segments.map((s,i)=>{
+          const x1 = scale(s.from)
+          const x2 = scale(s.to)
+          const y = 30 + (i % 6) * 12
+          const isActive = i === activeSegment
           return (
             <g key={i}>
-              <rect x={x} y={y} width={Math.max(2, x2-x)} height={14} rx={4} fill={isActive? '#60a5fa' : '#ffbf69'} />
-              <text x={x+6} y={y+10} fontSize={11} fill="#000">{seg.pid}</text>
-              <text x={x2+6} y={y+10} fontSize={10} fill="#ddd">{seg.end}</text>
+              <line x1={x1} x2={x2} y1={y} y2={y} stroke={isActive?"#6ee7b7":"#ffbf69"} strokeWidth={isActive?6:4} strokeLinecap="round" />
+              <circle cx={x1} cy={y} r={isActive?4:3} fill="#ffd" />
+              <text x={x1} y={y-6} fontSize={9} fill="#fff">{s.from}</text>
+              {i===segments.length-1 && <text x={x2} y={y-6} fontSize={9} fill="#fff">{s.to}</text>}
             </g>
           )
         })}
 
-        <g transform={`translate(${padding}, ${height-20})`}>
+        <text x={padding} y={18} fontSize={12} fill="#fff">Head path (left→right = track positions)</text>
+
+        {/* timeline */}
+        <g transform={`translate(${padding}, ${height-70})`}>
           <line x1={0} x2={usable} y1={0} y2={0} stroke="#666" strokeWidth={2} />
-          {[...Array(6)].map((_,i)=>{
-            const t = Math.round((i/5) * totalEnd)
-            const x = (t / Math.max(1, totalEnd)) * usable
+          {times.map((t,i)=>{
+            const x = (t / Math.max(1, total)) * usable
+            const isCurrent = i === currentStep
             return (
               <g key={i}>
-                <line x1={x} x2={x} y1={-6} y2={6} stroke="#999" />
-                <text x={x} y={18} fontSize={10} fill="#ddd" textAnchor="middle">{t}</text>
+                <line x1={x} x2={x} y1={-6} y2={6} stroke={isCurrent?"#6ee7b7":"#999"} />
+                <text x={x} y={18} fontSize={10} fill={isCurrent?"#fff":"#ddd"} textAnchor="middle">{sequence[i]}</text>
               </g>
             )
           })}
+
+          {/* moving head marker */}
+          {(() => {
+            const cur = Number(sequence[Math.min(currentStep, sequence.length-1)])
+            const x = (times[Math.min(currentStep, times.length-1)] / Math.max(1,total)) * usable
+            return (
+              <g>
+                <circle cx={x} cy={0} r={6} fill="#60a5fa" />
+                <text x={x} y={-10} fontSize={11} fill="#fff" textAnchor="middle">{cur}</text>
+              </g>
+            )
+          })()}
         </g>
+
       </svg>
+
+      <div className="mt-3 text-sm text-gray-300">Total movement = {total}</div>
     </div>
   )
 }
