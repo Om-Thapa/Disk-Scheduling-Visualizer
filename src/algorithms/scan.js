@@ -1,7 +1,4 @@
-// SCAN (elevator) algorithm
-// go in one direction, serve requests, optionally go to end of disk, then reverse
 export default function scan(requests = [], head = 0, maxTrack = 199, direction='right', goToEnd=true){
-  // clean and sort unique requests
   const tmp = []
   const seen = {}
   for(let i=0;i<(requests||[]).length;i++){
@@ -17,7 +14,6 @@ export default function scan(requests = [], head = 0, maxTrack = 199, direction=
     if(tmp[i] < head) left.push(tmp[i])
     else right.push(tmp[i])
   }
-  // left should be descending for serving when moving left
   left.sort((a,b)=>b-a)
 
   const path = [Number(head)]
@@ -37,7 +33,6 @@ export default function scan(requests = [], head = 0, maxTrack = 199, direction=
     for(let i=0;i<right.length;i++) path.push(right[i])
   }
 
-  // remove consecutive duplicates
   const compact = []
   for(let i=0;i<path.length;i++) if(i===0 || path[i] !== path[i-1]) compact.push(path[i])
 

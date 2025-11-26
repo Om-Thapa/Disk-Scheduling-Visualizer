@@ -1,6 +1,4 @@
-// C-SCAN and C-LOOK (circular) algorithm
 export default function cscan(requests = [], head = 0, maxTrack = 199, direction='right', clook=false){
-  // clean and sort unique
   const tmp = []
   const seen = {}
   for(let i=0;i<(requests||[]).length;i++){

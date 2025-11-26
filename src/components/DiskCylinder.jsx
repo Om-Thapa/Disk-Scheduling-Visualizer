@@ -1,7 +1,5 @@
 import React from 'react'
 
-// Simple DiskCylinder: shows concentric rings and the head position.
-// This version avoids animation libraries so it's easy to understand for beginners.
 export default function DiskCylinder({ path = [], maxTrack = 199, currentStep = 0 }){
   const size = 320
   const cx = size/2
@@ -17,14 +15,13 @@ export default function DiskCylinder({ path = [], maxTrack = 199, currentStep = 
     return minR + (v / Math.max(1, maxT)) * (maxR - minR)
   }
 
-  const mapTrackToAngle = (t) => {
-    const idx = Math.abs(Math.floor(Number(t))) % sectors
-    return (idx / sectors) * Math.PI * 2 - Math.PI/2
-  }
+  const pts = (path||[]).slice(0, 120)
+  const n = pts.length || 1
+  const activeIdx = Math.max(0, Math.min(currentStep, n - 1))
+  const curTrack = pts.length ? Number(pts[activeIdx]) : 0
 
-  const curTrack = path && path.length ? Number(path[Math.min(currentStep, path.length-1)]) : 0
   const headR = mapTrackToRadius(curTrack)
-  const headAngle = mapTrackToAngle(curTrack)
+  const headAngle = (activeIdx / n) * Math.PI * 2 - Math.PI/2
   const headX = cx + headR * Math.cos(headAngle)
   const headY = cy + headR * Math.sin(headAngle)
 
@@ -49,17 +46,28 @@ export default function DiskCylinder({ path = [], maxTrack = 199, currentStep = 
           return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#2a2a2a" strokeWidth={1} />
         })}
 
-        {(path||[]).slice(0, 120).map((p, idx)=>{
-          const r = mapTrackToRadius(p)
-          const a = mapTrackToAngle(p)
-          const x = cx + r * Math.cos(a)
-          const y = cy + r * Math.sin(a)
-          const visited = idx <= currentStep
-          return <circle key={idx} cx={x} cy={y} r={visited?4:2} fill={visited? '#6ee7b7' : '#888'} />
-        })}
+        {(() => {
+          return pts.map((p, idx) => {
+            const r = mapTrackToRadius(p)
+            const a = (idx / n) * Math.PI * 2 - Math.PI / 2
+            const x = cx + r * Math.cos(a)
+            const y = cy + r * Math.sin(a)
 
-        {/* head marker — a plain SVG circle. We use a small CSS transition so it moves smoothly in modern browsers. */}
-        <circle cx={headX} cy={headY} r={8} fill="#60a5fa" stroke="#93c5fd" strokeWidth={2} style={{ transition: 'cx 0.5s ease, cy 0.5s ease' }} />
+            if(idx === activeIdx){
+              return null
+            }
+
+            const isPast = idx < activeIdx
+            const radius = isPast ? 3 : 2
+            const fill = isPast ? '#6ee7b7' : '#666'
+            const opacity = isPast ? 0.9 : 0.55
+            return <circle key={idx} cx={x} cy={y} r={radius} fill={fill} opacity={opacity} />
+          })
+        })()}
+
+        <g transform={`translate(${headX}, ${headY})`} style={{ transition: 'transform 0.45s ease' }}>
+          <circle cx={0} cy={0} r={8} fill="#60a5fa" stroke="#93c5fd" strokeWidth={2} />
+        </g>
 
         <circle cx={cx} cy={cy} r={12} fill="#111" stroke="#333" />
         <text x={cx} y={cy+4} fontSize={11} fill="#fff" textAnchor="middle">Head</text>

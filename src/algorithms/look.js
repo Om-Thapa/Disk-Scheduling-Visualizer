@@ -1,4 +1,3 @@
-// LOOK: similar to SCAN but does not travel to disk ends
 export default function look(requests = [], head = 0, maxTrack = 199, direction='right'){
   const tmp = []
   const seen = {}

@@ -5,8 +5,6 @@ import cscan from './cscan'
 import look from './look'
 import clook from './clook'
 
-// computeSchedule for disk scheduling algorithms
-// processes parameter is used as a request array in disk scheduling context
 export default function computeSchedule(algo, requests = [], opts = {}){
   const reqs = (Array.isArray(requests) ? requests.slice() : [])
   let res
@@ -20,7 +18,6 @@ export default function computeSchedule(algo, requests = [], opts = {}){
     default: return { error: 'Unknown algorithm' }
   }
 
-  // simple timing metrics: treat seek distance as time units
   try{
     if(!res || !res.fullPath || res.fullPath.length < 2) return res
     const path = res.fullPath.slice()
@@ -33,7 +30,7 @@ export default function computeSchedule(algo, requests = [], opts = {}){
       cum += serviceDist
       const completion = cum
       const waiting = completion - serviceDist
-      const turnaround = completion // arrival assumed 0
+      const turnaround = completion
       timeline.push({ track: to, serviceDist, completion, waiting, turnaround, step: i })
     }
     const n = timeline.length

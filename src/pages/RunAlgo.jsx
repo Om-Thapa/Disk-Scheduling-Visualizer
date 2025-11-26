@@ -38,28 +38,22 @@ export default function RunAlgo(){
   function togglePlay(){
     if(!result || result.error) return
 
-    if(timerId){ clearTimeout(timerId); setTimerId(null); setIsPlaying(false); return }
-
-    setIsPlaying(true)
-
-    const step = () => {
-      setCurrentStep(s => {
-        const last = Math.max(0, (result.fullPath||[]).length - 1)
-        if(s >= last){
-          setIsPlaying(false)
-          setTimerId(null)
-          return last
-        }
-        const next = s + 1
-        const id = setTimeout(step, 600)
-        setTimerId(id)
-        return next
-      })
-    }
-
-    const id = setTimeout(step, 600)
-    setTimerId(id)
+    setIsPlaying(p => !p)
   }
+
+
+  useEffect(() => {
+    if(!isPlaying || !result || result.error) return
+    const last = Math.max(0, (result.fullPath||[]).length - 1)
+    if(currentStep >= last){
+      setIsPlaying(false)
+      return
+    }
+    const id = setTimeout(() => {
+      setCurrentStep(s => Math.min(last, s + 1))
+    }, 600)
+    return () => clearTimeout(id)
+  }, [isPlaying, currentStep, result])
 
   return (
     <main className="max-w-6xl mx-auto p-10 rounded-xl bg-amber-50/5 mt-22 mb-8">
@@ -109,7 +103,7 @@ export default function RunAlgo(){
               <p><strong>Total seek:</strong> {result.totalSeek}</p>
               <p><strong>Average seek:</strong> {(result.totalSeek / Math.max(1, result.sequence.length)).toFixed(2)}</p>
 
-              {/* Simple metrics table */}
+              
               {result.timeline && result.timeline.length > 0 && (
                 <div className="mt-4 overflow-auto">
                   <table className="w-full text-sm text-left border-collapse">

@@ -1,7 +1,4 @@
-// SSTF: Shortest Seek Time First
-// Choose the next request that is closest to current head
 export default function sstf(requests = [], head = 0){
-  // copy and clean requests
   const remaining = []
   for(let i=0;i<(requests||[]).length;i++){
     const n = Number(requests[i])
@@ -12,7 +9,6 @@ export default function sstf(requests = [], head = 0){
   let cur = Number(head)
 
   while(remaining.length > 0){
-    // find index of closest request
     let bestIdx = 0
     let bestDist = Math.abs(remaining[0] - cur)
     for(let i=1;i<remaining.length;i++){
@@ -24,7 +20,6 @@ export default function sstf(requests = [], head = 0){
     cur = next
   }
 
-  // total seek
   let total = 0
   for(let i=1;i<path.length;i++) total += Math.abs(path[i] - path[i-1])
 

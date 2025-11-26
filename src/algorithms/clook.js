@@ -1,4 +1,3 @@
-// C-LOOK: circular version of LOOK
 export default function clook(requests = [], head = 0, maxTrack = 199, direction='right'){
   const tmp = []
   const seen = {}
